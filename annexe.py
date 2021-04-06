@@ -41,7 +41,8 @@ def tri_col_not_nombre(df):
     return(dfNotNumbers)
 
 
-def premiere_epuration(df,nbLignes,ratio):
+def ratio_epuration(df,ratio):
+    nbLignes = df.shape[0]
     tabIsna = df.isna().sum()
     listIndex = tabIsna.index.tolist()
     dfEpure = pd.DataFrame()
@@ -50,43 +51,44 @@ def premiere_epuration(df,nbLignes,ratio):
             dfEpure[listIndex[index]] = df[listIndex[index]]
     return(dfEpure)
 
+def print_info_col(df,col_names):
+    for column in col_names:
+        print('\n' + column)
+        print(df[column].nunique() , "n uniques")
+        print(df[column].isna().sum(), "somme des naN dans la colonne")
 
 def print_some_info(df):
 	print("shape of the dataframe",df.shape)
 	for column in df.columns:
 		print('\n' + column)
 		print(df[column].nunique() , "n uniques")
-		print(df[column].isna().sum(), "somme des non nul dans la colonne")
+		print(df[column].isna().sum(), "somme des naN dans la colonne")
 # 		print("Some exemples :\n",df.sample(10,random_state = 16))
-	
-	
+
+
 def test_nunique_isna(df):
 	print("shape of the dataframe",df.shape)
 	for column in df.columns:
 		print('\n' + column)
 		print(df[column].nunique() , "n uniques")
-		print(df[column].isna().sum(), "somme des non nul dans la colonne")
+		print(df[column].isna().sum(), "somme des naN dans la colonne")
 
 
-def print_samples(dataFrame):
-    print(dataFrame.sample(10,random_state = 16))
+def print_samples(dataFrame,number_of_rows):
+    print(dataFrame.sample(number_of_rows,random_state = 16))
 
         
-def sup_empty_row(dfdate,dfNormal):
-    dfNormalCopy = dfNormal.copy()
-    tabIsnaCumsum = dfdate.isna().cumsum(axis=1)
-    tabSize = len(tabIsnaCumsum.columns)    
-    lastValues = tabIsnaCumsum.iloc[:,-1:]
-    dfNotForDate = pd.DataFrame()
-    indexNoteForDate = 0
-    for index,value in reversed(list(enumerate(lastValues.values))):
-        if value == tabSize:
-            dfNotForDate[indexNoteForDate] = dfNormal[index]
-            indexNoteForDate += 1
-            dfdate = dfdate.drop(index)
-            dfNormalCopy = dfNormalCopy.drop(index)
-    dfNormal = dfNormalCopy        
-    return(dfNotForDate)
+def sup_empty_row(dfdate):
+#     tabIsnaCumsum = dfdate.isna().cumsum(axis=1)
+#    tabSize = len(dfdate.columns)    
+#     lastValues = tabIsnaCumsum.iloc[:,-1:]
+#     tab_empty_rows = []
+# #    for index,value in reversed(list(enumerate(lastValues.values))):
+#     for index,value in enumerate(lastValues.values):
+#         if value == tabSize:
+#             tab_empty_rows.append(index)
+    dfdate = dfdate.dropna(axis = 'index', how = 'all')
+#     return(dfNotForDate)
 
 def plotSmt(df,nbValueByGraphe):
     nbValues = df.shape[0]

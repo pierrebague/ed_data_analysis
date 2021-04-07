@@ -75,7 +75,7 @@ def test_nunique_isna(df):
 
 
 def print_samples(dataFrame,number_of_rows):
-    print(dataFrame.sample(number_of_rows,random_state = 16))
+    display(dataFrame.sample(number_of_rows,random_state = 148625))
 
         
 def sup_empty_row(dfdate):
@@ -106,4 +106,18 @@ def plotSmt(df,nbValueByGraphe):
             ax.plot(x,data)
     return()
 
-            
+def part_dataframe(dfenter,mini = 0,maxi = 0):
+    if maxi == 0:
+        dfpart = dfenter[dfenter.gt(mini)].dropna(axis = 'index',how = 'all')
+    elif maxi == -1:
+        dfpart = dfenter[dfenter.lt(mini)].dropna(axis = 'index',how = 'all')
+    else:
+        dfpart = dfenter[dfenter.gt(mini) & dfenter.le(maxi)].dropna(axis = 'index',how = 'all')
+    dfpart2 = dfenter.join(dfpart,how ='inner',lsuffix=['2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009','2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2020','2025', '2030'])
+    return(dfpart2)
+        
+        
+def find_def(df_to_define,df_with_def):
+    list_of_index = df_to_define.index
+    list_of_id_and_country = list_of_index.split(separator = '_')
+    

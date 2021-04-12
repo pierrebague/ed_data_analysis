@@ -8,6 +8,13 @@ NOUVEAUX_FICHIERS = ["NewEdStatsCountry.csv","NewEdStatsData.csv"]
 LOCALISATION ='F:/cour/OC/projet2/'
 
 
+def to_keep(dataframe,columns_to_keep):
+    reduct_dataframe = ouvre_csv(dataframe)
+    for column in reduct_dataframe.columns:
+        if column not in columns_to_keep:
+            reduct_dataframe = reduct_dataframe.drop([column],axis = 1)
+    print("nouveau format du fichier : ",reduct_dataframe.shape[0]," lignes et ",reduct_dataframe.shape[1]," colonnes.")
+    return reduct_dataframe
 
 def ouvre_csv(num_fichier,index_column="",column_list=""):
     if index_column == "" and column_list == "":
@@ -22,8 +29,8 @@ def ouvre_csv(num_fichier,index_column="",column_list=""):
     else:
         fichier_lu = pd.read_csv(LOCALISATION + FICHIERS[num_fichier],index_col=index_column)
         fichier_lu = fichier_lu.dropna(axis = 'columns', how = 'all')
-    print(FICHIERS[num_fichier], " is open")
-    print("fichier avec ",fichier_lu.shape[0]," lignes et ",fichier_lu.shape[1]," colonnes.\n")
+    print("\n",FICHIERS[num_fichier], " is open")
+    print("fichier avec ",fichier_lu.shape[0]," lignes et ",fichier_lu.shape[1]," colonnes.")
     return fichier_lu
 
 def garde_nombre(data_frame):

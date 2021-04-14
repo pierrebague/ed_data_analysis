@@ -10,11 +10,15 @@ NOUVEAUX_FICHIERS = ["NewEdStatsCountry.csv","NewEdStatsData.csv"]
 LOCALISATION ='F:/cour/OC/projet2/'
 
 
+def index_str_contains(index,dataframe,regex_var):
+    new_index = index.str.contains(regex_var,case=False,regex=True,na=False)
+    print("Pour le regex ",regex_var," : ",len(dataframe[new_index]['Indicator Name'].unique())," lignes de trouvé")
+    return new_index
 
 def take_needed_rows(dataframe,list_values):
     new_dataframe = pd.DataFrame([])
     for value in list_values:
-        new_dataframe = pd.concat([new_dataframe,dataframe.loc[dataframe['Country Code'] == value]])
+        new_dataframe = pd.concat([new_dataframe,dataframe.loc[dataframe['Indicator Name'] == value]])
     return new_dataframe
 
 # def map_dataframe_list_func(dataframe_in,dataframes_out,list_values,func):
@@ -30,15 +34,15 @@ def take_needed_rows(dataframe,list_values):
 def sns_graph(fichierESC3):
     sns.set(font_scale=5)
     sns.set_theme(style="darkgrid")
-    ax = sns.countplot(x="Income Group",order = ["High \nOECD","High \nnonOECD","Upper \nmiddle","Lower \nmiddle","Low"],\
-                   data = fichierESC3,palette=["tab:red","tab:orange","tab:gray","cornflowerblue","darkblue",]).\
+    ax = sns.countplot(x="Income Group",order = ["High","Upper \nmiddle","Lower \nmiddle","Low"],\
+                   data = fichierESC3,palette=["tab:red","tab:orange","cornflowerblue","darkblue",]).\
                     set_title("Numbers of countries by income group")
 
 
 
 def replace_ESC(dataframe,value_or_number = 0):
     if value_or_number == 0:
-        new_dataframe = dataframe.replace(["High income: nonOECD","Upper middle income","Lower middle income","High income: OECD","Low income"],["High \nnonOECD","Upper \nmiddle","Lower \nmiddle","High \nOECD","Low"])
+        new_dataframe = dataframe.replace(["High income: nonOECD","Upper middle income","Lower middle income","High income: OECD","Low income"],["High","Upper \nmiddle","Lower \nmiddle","High","Low"])
     else:
         new_dataframe = dataframe.replace(["High income: nonOECD","Upper middle income","Lower middle income","High income: OECD","Low income"],[5,4,2,5,1])
     return new_dataframe

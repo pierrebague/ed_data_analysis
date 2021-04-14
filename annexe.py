@@ -1,12 +1,47 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
+import plotly.graph_objs as go
+import seaborn as sns
 
 FICHIERS = ["EdStatsCountry.csv","EdStatsCountry-Series.csv","EdStatsData.csv","EdStatsFootNote.csv"
             ,"EdStatsSeries.csv"]
 NOUVEAUX_FICHIERS = ["NewEdStatsCountry.csv","NewEdStatsData.csv"]
 LOCALISATION ='F:/cour/OC/projet2/'
 
+
+
+def take_needed_rows(dataframe,list_values):
+    new_dataframe = pd.DataFrame([])
+    for value in list_values:
+        new_dataframe = pd.concat([new_dataframe,dataframe.loc[dataframe['Country Code'] == value]])
+    return new_dataframe
+
+# def map_dataframe_list_func(dataframe_in,dataframes_out,list_values,func):
+#     for data,elem in zip(dataframes_out,list_values):
+#         data = func(dataframe_in,elem)
+
+
+# def map_group_by(dataframes_in):
+#     for dataframe_i in range(len(dataframes_in)):
+#         dataframes_in[dataframe_i] = dataframes_in[dataframe_i].groupby(['Country Name']).sum()
+
+        
+def sns_graph(fichierESC3):
+    sns.set(font_scale=5)
+    sns.set_theme(style="darkgrid")
+    ax = sns.countplot(x="Income Group",order = ["High \nOECD","High \nnonOECD","Upper \nmiddle","Lower \nmiddle","Low"],\
+                   data = fichierESC3,palette=["tab:red","tab:orange","tab:gray","cornflowerblue","darkblue",]).\
+                    set_title("Numbers of countries by income group")
+
+
+
+def replace_ESC(dataframe,value_or_number = 0):
+    if value_or_number == 0:
+        new_dataframe = dataframe.replace(["High income: nonOECD","Upper middle income","Lower middle income","High income: OECD","Low income"],["High \nnonOECD","Upper \nmiddle","Lower \nmiddle","High \nOECD","Low"])
+    else:
+        new_dataframe = dataframe.replace(["High income: nonOECD","Upper middle income","Lower middle income","High income: OECD","Low income"],[5,4,2,5,1])
+    return new_dataframe
 
 def to_keep(dataframe,columns_to_keep):
     reduct_dataframe = ouvre_csv(dataframe)

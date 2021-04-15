@@ -8,11 +8,24 @@ FICHIERS = ["EdStatsCountry.csv","EdStatsCountry-Series.csv","EdStatsData.csv","
             ,"EdStatsSeries.csv"]
 NOUVEAUX_FICHIERS = ["NewEdStatsCountry.csv","NewEdStatsData.csv"]
 LOCALISATION ='F:/cour/OC/projet2/'
+INDEX = ["secondary","tertiary","school|educationnal","student","inhabitant|household","population","technology|computer|internet"]
+
+
+def indicator_name_list(dataframe):
+    index = dataframe['Indicator Name'].squeeze()
+    variable_list = []
+    for regex in INDEX:
+        index_temp = index_str_contains(index,dataframe,regex)
+        set_temp = set(dataframe[index_temp]['Indicator Name'].unique())
+        for variable in variable_list:
+            set_temp = set_temp - variable
+        print("Pour le regex ",regex," : ",len(set_temp)," variables de trouvé")    
+        variable_list.append(set_temp)
+    return variable_list
 
 
 def index_str_contains(index,dataframe,regex_var):
     new_index = index.str.contains(regex_var,case=False,regex=True,na=False)
-    print("Pour le regex ",regex_var," : ",len(dataframe[new_index]['Indicator Name'].unique())," lignes de trouvé")
     return new_index
 
 def take_needed_rows(dataframe,list_values):
@@ -40,7 +53,7 @@ def sns_graph(fichierESC3):
 
 
 
-def replace_ESC(dataframe,value_or_number = 0):
+def replace_ESC(dataframe, value_or_number=0):
     if value_or_number == 0:
         new_dataframe = dataframe.replace(["High income: nonOECD","Upper middle income","Lower middle income","High income: OECD","Low income"],["High","Upper \nmiddle","Lower \nmiddle","High","Low"])
     else:
@@ -48,14 +61,14 @@ def replace_ESC(dataframe,value_or_number = 0):
     return new_dataframe
 
 def to_keep(dataframe,columns_to_keep):
-    reduct_dataframe = ouvre_csv(dataframe)
+    reduct_dataframe = open_csv(dataframe)
     for column in reduct_dataframe.columns:
         if column not in columns_to_keep:
             reduct_dataframe = reduct_dataframe.drop([column],axis = 1)
     print("nouveau format du fichier : ",reduct_dataframe.shape[0]," lignes et ",reduct_dataframe.shape[1]," colonnes.")
     return reduct_dataframe
 
-def ouvre_csv(num_fichier,index_column="",column_list=""):
+def open_csv(num_fichier,index_column="",column_list=""):
     if index_column == "" and column_list == "":
         fichier_lu = pd.read_csv(LOCALISATION + FICHIERS[num_fichier])
         fichier_lu = fichier_lu.dropna(axis = 'columns', how = 'all')
@@ -107,7 +120,7 @@ def ratio_epuration(data_frame,ratio):
 def print_info_col(data_frame,col_names):
     for column in col_names:
         print('\n' + column)
-        print(data_frame[column].nunique() , "n uniques")
+        print(data_frame[column].nunique(), "n uniques")
         print(data_frame[column].isna().sum(), "somme des naN dans la colonne")
 
 def print_some_info(data_frame):

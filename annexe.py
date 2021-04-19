@@ -1,15 +1,121 @@
+
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import seaborn as sns
+
+
 
 FICHIERS = ["EdStatsCountry.csv","EdStatsCountry-Series.csv","EdStatsData.csv","EdStatsFootNote.csv"
             ,"EdStatsSeries.csv"]
 NOUVEAUX_FICHIERS = ["NewEdStatsCountry.csv","NewEdStatsData.csv"]
 LOCALISATION ='F:/cour/OC/projet2/'
 INDEX = ["secondary","tertiary","school|educationnal","student","inhabitant|household","population","technology|computer|internet"]
+VALUES_NOT_WANTED = ["WLD","ARE","LMC","LIC","LMY","UMC","MIC","HIC","NOC","OEC","EUU","EAS","EAP","SAS","OED","ECS","LCN","LAC","LDC","SSF","SSA","ECA","MEA","NAC","HPC","MNA","EMU","ARB","IDN","ZAF"]
 
+def fill_dataframe(dataframe):
+#     dataframe.fillna(method='ffill',inplace=True)
+    return dataframe.replace(0,np.nan).transpose().fillna(method='ffill').transpose()
+                                                   
+def sort_dataframe(dataframe,sort_year=''):
+    dataframe2 = fill_dataframe(dataframe)
+    if sort_year=='':
+        best_column_to_sort = most_filled_column(dataframe)
+    else:
+        best_column_to_sort = sort_year 
+        for code in VALUES_NOT_WANTED:
+            try:
+                dataframe2 = dataframe2.drop([code],axis = 0)
+            except:
+                pass
+    return dataframe2
+
+def print_top_values(dataframe,title,value1,value2,sort_year=''):
+    dataframe2 = sort_dataframe(dataframe,sort_year)
+    if value1 == 0:
+        dataframe3 = dataframe2.head(value2).transpose()
+        title = "Top " + str(value2) + " " + title
+    else:
+        dataframe3 = dataframe2.head(value2).tail(value2 - value1 + 1).transpose()
+        title = "Top " + str(value1) + " to " + str(value2) + " " + title
+    
+#     (dataframe3)
+    lines = dataframe3.plot.line().set_title(title)
+    
+
+def most_filled_column(dataframe):
+    mini = dataframe[dataframe.columns[-1]].isna().sum()
+    column_mini = dataframe.columns[-1]
+    for column in reversed(dataframe.columns):
+        isna_sum = dataframe[column].isna().sum()
+        if mini > isna_sum:
+            mini = isna_sum
+            column_mini = column
+    return column_mini
+           
+
+def clean_data(dataframe,ratio):
+    dataframe2 = dataframe.replace(0,np.nan)
+    dataframe3 = dataframe2.dropna(axis = 'columns', how = 'all')
+    dataframe4 = ratio_epuration(dataframe3,ratio)
+   
+    return dataframe4
+   
+def create_range(dataframe,quantity_print,which_one=-1):
+    if quantity_print == 1:
+        if which_one == 0:
+            return [dataframe.columns[0]]
+        elif which_one == -1:
+            return [dataframe.columns[-1]]
+        else:
+            try:
+                dataframe[str(which_one)]
+            except ValueError:
+                print("Non valid column")
+    else:
+        last_elem = int(dataframe.columns[-1])
+        column_nbr = int(len(dataframe.columns))
+       
+        if column_nbr % (quantity_print - 1) == 0:
+            range_step = int(column_nbr / quantity_print)
+        else:
+            range_step = int(column_nbr / (quantity_print - 1))
+        begin_year = last_elem
+        for step in range(quantity_print-1):
+            begin_year -= range_step
+        return range(begin_year,last_elem+1,range_step)
+
+
+def choropleth_map(dataframe,titre,index=False,year='2001',column='Income Group'):
+    if index:
+        countries = dataframe.index.tolist()
+        z = dataframe[year].tolist()
+        titre = titre + year
+    elif not index:
+        countries = dataframe['Country Code'].tolist()
+        z = dataframe[column].tolist()
+    layout = dict(geo={'scope': 'world'})
+    scl = [[0.0, 'darkblue'],[0.2, 'cornflowerblue'],[0.4, 'cornflowerblue'],\
+               [0.6, 'orange'],[0.8, 'orange'],[1.0, 'red']]
+    data = dict(
+        type='choropleth',
+        locations=countries,
+        locationmode='ISO-3',
+        colorscale=scl,
+        autocolorscale = False,
+        marker = dict(line = dict (color = 'rgb(0,0,0)', width = 1)),z=z)
+    map = go.Figure(data=[data], layout=layout)
+    map.update_layout(
+    title={
+        'text': titre,
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'
+        },    
+        title_font_size=30)
+    map.show()
 
 def indicator_name_list(dataframe):
     index = dataframe['Indicator Name'].squeeze()
@@ -43,7 +149,7 @@ def take_needed_rows(dataframe,list_values):
 #     for dataframe_i in range(len(dataframes_in)):
 #         dataframes_in[dataframe_i] = dataframes_in[dataframe_i].groupby(['Country Name']).sum()
 
-        
+       
 def sns_graph(fichierESC3):
     sns.set(font_scale=5)
     sns.set_theme(style="darkgrid")
@@ -92,13 +198,6 @@ def garde_nombre(data_frame):
             df_years[column] = data_frame[column]
     return df_years
 
-def tri_col_nombre(data_frame):
-    df_years = pd.DataFrame()
-    for column in data_frame.columns:
-        if column.isdigit():
-            df_years[column]=data_frame[column]
-    return df_years
-
 def tri_col_not_nombre(data_frame):
     df_not_numbers = pd.DataFrame()
     for column in data_frame.columns:
@@ -109,11 +208,11 @@ def tri_col_not_nombre(data_frame):
 
 def ratio_epuration(data_frame,ratio):
     nb_lignes = data_frame.shape[0]
-    tab_is_na = data_frame.isna().sum()
-    list_index = tab_is_na.index.tolist()
+    tab_isna = data_frame.isna().sum()
+    list_index = tab_isna.index.tolist()
     df_epure = pd.DataFrame()
-    for index,value in enumerate(tab_is_na):
-        if value <= nb_lignes/ratio:
+    for index,value in enumerate(tab_isna):
+        if value <= nb_lignes * (1 - ratio):
             df_epure[list_index[index]] = data_frame[list_index[index]]
     return df_epure
 

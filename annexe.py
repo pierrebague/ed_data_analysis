@@ -14,6 +14,69 @@ LOCALISATION ='F:/cour/OC/projet2/'
 INDEX = ["secondary","tertiary","school|educationnal","student","inhabitant|household","population","technology|computer|internet"]
 VALUES_NOT_WANTED = ["WLD","ARE","LMC","LIC","LMY","UMC","MIC","HIC","NOC","OEC","EUU","EAS","EAP","SAS","OED","ECS","LCN","LAC","LDC","SSF","SSA","ECA","MEA","NAC","HPC","MNA","EMU","ARB","IDN","ZAF"]
 
+def display_potential_years_study(dataframe1,dataframe2,selected_countries):          
+    dataframe = dataframe1.join(dataframe2,how='outer')
+    dataframe.fillna(1,inplace=True)
+    dataframe["potential"] = dataframe[dataframe.columns[0]] * dataframe[dataframe.columns[1]]
+    dataframe = dataframe.loc[selected_countries,:]    
+    display(dataframe.sort_values(by=['potential'],ascending=False))
+
+# def display_potential_years_study(new_students_sum,new_study_years_sum,selected_countries):          
+#     students_times_study_years = new_students_sum.join(new_study_years_sum, how='outer')
+#     students_times_study_years.fillna(1,inplace=True)
+#     students_times_study_years["potential"] = students_times_study_years["new_students"] * students_times_study_years['study_years']
+#     students_times_study_years = students_times_study_years.loc[selected_countries,:]
+#     display(students_times_study_years.sort_values(by=['potential'],ascending=False))
+
+def take_value(dataframe,new_column,year):
+    dataframe2= dataframe.copy()
+    dataframe2.dropna(axis = 'columns', how = 'all',inplace=True)
+    dataframe2 = dataframe2.replace(0,np.nan)
+    dataframe2.transpose().fillna(method='ffill',inplace=True)
+    dataframe2.drop(dataframe2.columns.difference([year]),1,inplace=True)
+    dataframe2= dataframe2.rename(columns={year:new_column})
+    for code in VALUES_NOT_WANTED:
+            try:
+                dataframe2 = dataframe2.drop([code],axis = 0)
+            except:
+                pass
+    return dataframe2
+    
+def last_value(dataframe,new_column):
+    dataframe2= dataframe.copy()
+    dataframe2.dropna(axis = 'columns', how = 'all',inplace=True)
+    dataframe2[new_column] = np.nan
+    dataframe2 = dataframe2.replace(0,np.nan)
+    dataframe2.transpose().fillna(method='ffill',inplace=True)
+    dataframe2.drop(dataframe2.columns.difference([new_column]),1,inplace=True)   
+    
+    for code in VALUES_NOT_WANTED:
+            try:
+                dataframe2 = dataframe2.drop([code],axis = 0)
+            except:
+                pass
+    return dataframe2
+
+def rank_dataframe(dataframe,new_column):
+    dataframe2 = last_value(dataframe,new_column)
+    dataframe2 = dataframe2.sort_values(by=new_column,ascending=False)
+    maxi = float(dataframe2.iloc[0])
+    part = maxi/4
+    part2 = part
+    part3 = part*2
+    part4 = part*3
+    for row in range(dataframe2.shape[0]):
+        if float(dataframe2.iloc[row]) < part2:
+            dataframe2.iloc[row] = int(1)
+        elif float(dataframe2.iloc[row]) < part3:
+            dataframe2.iloc[row] = int(2)
+        elif float(dataframe2.iloc[row]) < part4:
+            dataframe2.iloc[row] = int(3)
+        else:
+            dataframe2.iloc[row] = int(4)
+    return dataframe2.astype(int)
+
+
 def fill_dataframe(dataframe):
 #     dataframe.fillna(method='ffill',inplace=True)
     return dataframe.replace(0,np.nan).transpose().fillna(method='ffill').transpose()
@@ -29,6 +92,7 @@ def sort_dataframe(dataframe,sort_year=''):
                 dataframe2 = dataframe2.drop([code],axis = 0)
             except:
                 pass
+    dataframe2 = dataframe2.sort_values(by=[best_column_to_sort],ascending =False)
     return dataframe2
 
 def print_top_values(dataframe,title,value1,value2,sort_year=''):

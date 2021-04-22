@@ -13,28 +13,193 @@ NOUVEAUX_FICHIERS = ["NewEdStatsCountry.csv","NewEdStatsData.csv"]
 LOCALISATION ='F:/cour/OC/projet2/'
 INDEX = ["secondary","tertiary","school|educationnal","student","inhabitant|household","population","technology|computer|internet"]
 VALUES_NOT_WANTED = ["WLD","ARE","LMC","LIC","LMY","UMC","MIC","HIC","NOC","OEC","EUU","EAS","EAP","SAS","OED","ECS","LCN","LAC","LDC","SSF","SSA","ECA","MEA","NAC","HPC","MNA","EMU","ARB","IDN","ZAF"]
+COLOR_LIST = ["pastel","muted","colorblind","deep","dark","bright"]
+NOT_IN_STUDY_YEARS = ['FIN','NZL','ISL','AUT','SMR','CAN']
 
-def display_potential_years_study(dataframe1,dataframe2,selected_countries):          
+def display_potential_years_study(dataframe_study_year,final_df,mini,maxi):
+    final_df2 = final_df.copy()
+    final_df2["potential"] = final_df2["students_number"]
+
+    final_df3 = final_df2.merge(dataframe_study_year,left_on="Country Code",right_on=dataframe_study_year.index)
+    final_df3["potential"] = final_df3["potential"]*final_df3["study_year_expected"]
+    
+#     dataframe2 = dataframe2.replace(0,np.nan)
+#     final_df3.rename(columns={"prediction_new_students_2020":"students_number"},inplace=True)
+    
+    final_df3 = final_df3.replace("students_number_2020","potential_2020")
+    final_df3 = final_df3.replace("students_number_2025","potential_2025")
+    final_df3 = final_df3.replace("students_number_2030","potential_2030")
+    size_df = int(len(final_df3)/3)
+    ax = plt.axes()
+    plt.title("Countries potential")
+    fig = sns.scatterplot(data=final_df3.iloc[create_list_for_scatterplot2(mini,maxi)], x="Country Code", y="potential",hue="year")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#     final_df2 = final_df.copy()
+#     final_df2["potential"] = final_df2["students_number"]
+#     final_df3 = final_df2.merge(new_study_years_expected_sum,left_on="Country Code",right_on=new_study_years_expected_sum.index)
+#     final_df3["potential"] = final_df3["potential"]*final_df3["study_year_expected"]
+    
+#     size_df = int(len(dataframe)/3)
+#     ax = plt.axes()
+#     plt.title("Students number prediction in thousand")
+#     fig = sns.scatterplot(data=dataframe.iloc[create_list_for_scatterplot(mini,maxi,size_df)], x="Country Code", y="students_number",hue="year")
+    
+#     for country in dataframe_study_year["study_year_expected"].tolist():
+#         final_df2["potential"]
+
+def create_list_for_scatterplot2(begin,end):
+    row_list = []
+    for num in range(begin-1,end):
+        for mult in range(3):
+            row_list.append(int(mult+3*num))
+    return row_list        
+        
+    
+def scatterplot_student_number(dataframe,title,mini,maxi):
+    size_df = int(len(dataframe)/3)
+    ax = plt.axes()
+    plt.title("Students number prediction in thousand")
+    fig = sns.scatterplot(data=dataframe.iloc[create_list_for_scatterplot(mini,maxi,size_df)], x="Country Code", y="students_number",hue="year")
+
+
+def top_countries_with_data(dataframe):
+    dataframe2 = dataframe.copy()
+    for country in NOT_IN_STUDY_YEARS:
+        dataframe2.drop(dataframe2[dataframe2["Country Code"] == country].index,inplace =True)
+    return dataframe2
+
+
+
+
+
+def transforme_for_scatterplot(dataframe):
+    df1 = dataframe.reset_index()
+    df11 = df1.drop(df1.columns.difference(["Country Code","prediction_new_students_2020"]),1)
+    df12 = df1.drop(df1.columns.difference(["Country Code","prediction_new_students_2025"]),1)
+    df13 = df1.drop(df1.columns.difference(["Country Code","prediction_new_students_2030"]),1)
+    df11["year"] = "students_number_2020"
+    df12["year"] = "students_number_2025"
+    df13["year"] = "students_number_2030"
+    df11.rename(columns={"prediction_new_students_2020":"students_number"},inplace=True)
+    df12.rename(columns={"prediction_new_students_2025":"students_number"},inplace=True)
+    df13.rename(columns={"prediction_new_students_2030":"students_number"},inplace=True)
+    return pd.concat([df11,df12,df13])
+
+def create_list_for_scatterplot(begin,end,time):
+    row_list = []
+    for mult in range(3):
+        for num in range(begin-1,end):            
+            row_list.append(int(mult*time+num))
+    return row_list
+
+def horizontal_bar_plot_tri2(dataframe):
+    sns.set_theme(style="whitegrid")
+    f, ax = plt.subplots(figsize=(6, 15))
+    sns.set_color_codes("colorblind")
+    sns.barplot(x="prediction_new_students_2030", y=dataframe.index, data=dataframe,label="prediction_students_2030", color="b")
+    sns.set_color_codes("muted")
+    sns.barplot(x="prediction_new_students_2025", y=dataframe.index, data=dataframe,label="prediction_students_2025", color="b")
+    sns.set_color_codes("pastel")
+    sns.barplot(x="prediction_new_students_2020", y=dataframe.index, data=dataframe,label="prediction_students_2020", color="b")
+    ax.legend(ncol=1, loc="lower right", frameon=True)
+    ax.set(xlim=(0, 10000), ylabel="",
+           xlabel="Students prediction")
+    sns.despine(left=True, bottom=True)  
+
+def horizontal_bar_plot_mono(dataframe,sort_by,title,xmin,xmax):
+    sns.set_theme(style="whitegrid")
+    f, ax = plt.subplots(figsize=(6, 15))
+    dataframe2 = dataframe.sort_values(by=[sort_by],ascending=False)
+    sns.set_color_codes("pastel")
+    sns.barplot(x=sort_by, y=dataframe2.index, data=dataframe2,label=sort_by, color="b")
+    ax.legend(ncol=1, loc="lower right", frameon=True)
+    ax.xaxis.tick_top()
+    ax.set(xlim=(xmin, xmax), ylabel="",
+           xlabel=title)
+    sns.despine(left=True, bottom=True)
+   
+    
+def horizontal_bar_plot_tri(dataframe):
+    sns.set_theme(style="whitegrid")
+    f, ax = plt.subplots(figsize=(6, 15))
+    dataframe2 = dataframe.sort_values(by=["Income Group","Internet","Computer"],ascending=False)
+    sns.set_color_codes("colorblind")
+    sns.barplot(x="Computer2", y="Country Code", data=dataframe2,label="Computer owner rank", color="b")
+    sns.set_color_codes("muted")
+    sns.barplot(x="Internet2", y="Country Code", data=dataframe2,label="Internet user rank", color="b")
+    sns.set_color_codes("pastel")
+    sns.barplot(x="Income Group", y="Country Code", data=dataframe2,label="Income Group rank", color="b")
+    ax.legend(ncol=1, loc="lower right", frameon=True)
+    ax.set(xlim=(0, 15), ylabel="",
+           xlabel="Scoring by country")
+    sns.despine(left=True, bottom=True)
+
+def display_growth(dataframe1,dataframe2,selected_countries):
+    dataframe= dataframe1.join(dataframe2,how='outer')
+    new_col_list = []
+    new_col_list.append("growth")
+    dataframe.fillna(0,inplace=True)
+    dataframe[new_col_list[0]] = ""
+    for column in range(len(dataframe2.columns)-1): 
+        new_column = "growth_after_"+dataframe2.columns[column][-4:]
+        new_col_list.append(new_column)
+        dataframe[new_column] = pd.Series([], dtype='float')
+    for gap in range(len(dataframe2.columns)-1):
+        column1 = dataframe2.columns[gap]
+        column2 = dataframe2.columns[gap+1]
+        dataframe[new_col_list[gap+1]] = dataframe[column2] - dataframe[column1]
+    for row in dataframe.index.tolist():
+        variation = "neutral"
+        for column in new_col_list[1:]:
+            if variation == "neutral":
+                if dataframe.at[row,column] > 0:
+                    variation = "ascending"
+                else:
+                    variation = "descending"
+            else:
+                if (dataframe.at[row,column] > 0 and variation == "descending") or (dataframe.at[row,column] < 0 and variation == "ascending"):
+                    variation = "changing"
+        dataframe.at[row,new_col_list[0]] = variation    
+    dataframe = dataframe.loc[selected_countries,:]
+    display(dataframe)
+
+def potential_years_study(dataframe1,dataframe2,selected_countries):          
     dataframe = dataframe1.join(dataframe2,how='outer')
     dataframe.fillna(1,inplace=True)
-    dataframe["potential"] = dataframe[dataframe.columns[0]] * dataframe[dataframe.columns[1]]
+    multiple_row = len(dataframe2.columns)
+    new_col_list = []
+    if multiple_row>1:
+        for column in range(len(dataframe2.columns)):
+            new_col = "potential_"+dataframe2.columns[column][-4:]
+            new_col_list.append(new_col)
+            dataframe[new_col] = dataframe[dataframe.columns[0]] * dataframe[dataframe.columns[column +1]]
+    else:
+        dataframe["potential"] = dataframe[dataframe.columns[0]] * dataframe[dataframe.columns[1]]
     dataframe = dataframe.loc[selected_countries,:]    
-    display(dataframe.sort_values(by=['potential'],ascending=False))
+    if multiple_row>1:
+#         display(dataframe.sort_values(by=[new_col_list[0]],ascending=False))
+        return dataframe.sort_values(by=[new_col_list[0]],ascending=False)
+    else:
+#         display(dataframe.sort_values(by=['potential'],ascending=False))
+        return dataframe.sort_values(by=['potential'],ascending=False)
 
-# def display_potential_years_study(new_students_sum,new_study_years_sum,selected_countries):          
-#     students_times_study_years = new_students_sum.join(new_study_years_sum, how='outer')
-#     students_times_study_years.fillna(1,inplace=True)
-#     students_times_study_years["potential"] = students_times_study_years["new_students"] * students_times_study_years['study_years']
-#     students_times_study_years = students_times_study_years.loc[selected_countries,:]
-#     display(students_times_study_years.sort_values(by=['potential'],ascending=False))
-
-def take_value(dataframe,new_column,year):
+def take_value(dataframe,new_column,years):
     dataframe2= dataframe.copy()
     dataframe2.dropna(axis = 'columns', how = 'all',inplace=True)
     dataframe2 = dataframe2.replace(0,np.nan)
     dataframe2.transpose().fillna(method='ffill',inplace=True)
-    dataframe2.drop(dataframe2.columns.difference([year]),1,inplace=True)
-    dataframe2= dataframe2.rename(columns={year:new_column})
+    dataframe2.drop(dataframe2.columns.difference(years),1,inplace=True)
+    for year in years:
+        dataframe2= dataframe2.rename(columns={year:new_column+"_"+year})
     for code in VALUES_NOT_WANTED:
             try:
                 dataframe2 = dataframe2.drop([code],axis = 0)
@@ -48,8 +213,7 @@ def last_value(dataframe,new_column):
     dataframe2[new_column] = np.nan
     dataframe2 = dataframe2.replace(0,np.nan)
     dataframe2.transpose().fillna(method='ffill',inplace=True)
-    dataframe2.drop(dataframe2.columns.difference([new_column]),1,inplace=True)   
-    
+    dataframe2.drop(dataframe2.columns.difference([new_column]),1,inplace=True)    
     for code in VALUES_NOT_WANTED:
             try:
                 dataframe2 = dataframe2.drop([code],axis = 0)

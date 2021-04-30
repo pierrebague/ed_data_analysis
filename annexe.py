@@ -32,6 +32,11 @@ def open_csv(num_fichier,index_column="",column_list=""):
     print("fichier avec ",fichier_lu.shape[0]," lignes et ",fichier_lu.shape[1]," colonnes.")
     return fichier_lu
 
+def print_empty_stats(dataframe):
+    data_number = dataframe.count(axis='index').cumsum().tolist()
+    pourcentage_values = int(data_number[-1]) / (int(dataframe.shape[0]) * int(dataframe.shape[1])) * 100
+    print("le dataframe est rempli à ",format(pourcentage_values,".2f"),"%\n")
+
 def print_samples(data_frame,number_of_rows):
     display(data_frame.sample(number_of_rows,random_state = 148625))
 
@@ -230,10 +235,11 @@ def horizontal_bar_plot_tri(dataframe):
     sns.barplot(x="Internet2", y="Country Code", data=dataframe2,label="Internet user rank", color="b")
     sns.set_color_codes("pastel")
     sns.barplot(x="Income Group", y="Country Code", data=dataframe2,label="Income Group rank", color="b")
-    ax.legend(ncol=1, loc="lower right", frameon=True)
-    ax.set(xlim=(0, 15), ylabel="",
-           xlabel="Scoring by country")
+    ax.legend(ncol=1, loc="lower right", frameon=True,fontsize='large')
+    plt.xlabel( xlabel="Scoring by country",fontsize=18)
+    ax.set(xlim=(0, 15), ylabel="", xlabel="Scoring by country")
     sns.despine(left=True, bottom=True)
+
 
 def horizontal_bar_plot_mono(dataframe,sort_by,title,xmin,xmax):
     sns.set_theme(style="whitegrid")
@@ -241,11 +247,18 @@ def horizontal_bar_plot_mono(dataframe,sort_by,title,xmin,xmax):
     dataframe2 = dataframe.sort_values(by=[sort_by],ascending=False)
     sns.set_color_codes("pastel")
     sns.barplot(x=sort_by, y=dataframe2.index, data=dataframe2,label=sort_by, color="b")
-    ax.legend(ncol=1, loc="lower right", frameon=True)
-    ax.xaxis.tick_top()
-    ax.set(xlim=(xmin, xmax), ylabel="",
-           xlabel=title)
+    ax.legend(ncol=1, loc="lower right", frameon=True,fontsize='large')
+    ax.xaxis.tick_top()    
+    if title == "Study years in selected countries":
+        for i,value in enumerate(dataframe2[sort_by]):
+            ax.text(value+3/xmin, i + 0.2,str(value),fontsize=15)
+    else:
+        for i,value in enumerate(dataframe2[sort_by]):
+            ax.text(value+3/xmin, i + 0.2,str(int(value)),fontsize=15)    
+    plt.xlabel( xlabel=title,fontsize=18)
+    ax.set(xlim=(xmin, xmax), ylabel="", xlabel=title)
     sns.despine(left=True, bottom=True)
+    
 
 def top_countries_with_data(dataframe):
     dataframe2 = dataframe.copy()
@@ -327,6 +340,7 @@ def display_potential_years_study(dataframe_study_year,final_df,mini,maxi):
     final_df3 = final_df3.replace("students_number_2020","potential_2020")
     final_df3 = final_df3.replace("students_number_2025","potential_2025")
     final_df3 = final_df3.replace("students_number_2030","potential_2030")
+    final_df3 = final_df3.sort_values(by=["potential"],ascending=False)
     size_df = int(len(final_df3)/3)
     ax = plt.axes()
     plt.title("Countries potential")
